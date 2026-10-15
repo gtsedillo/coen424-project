@@ -1,0 +1,75 @@
+# recommendation v2 runs NEXT TO v1, behind the SAME Kubernetes Service.
+#
+# The existing Service "recommendationservice" selects pods with
+# app=recommendationservice, so it now reaches both versions. The "version"
+# label (v1 / v2) is what lets Istio tell them apart and split traffic.
+#
+# Local (kind):  image recommendationservice:v2, loaded with `kind load docker-image`
+# GKE (later):   the image path in Artifact Registry, built for linux/amd64
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recommendationservice-v2
+  labels:
+    app: recommendationservice
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: recommendationservice
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: recommendationservice
+        version: v2
+    spec:
+      serviceAccountName: recommendationservice
+      terminationGracePeriodSeconds: 5
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+      - name: server
+        image: recommendationservice:v2
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          periodSeconds: 5
+          grpc:
+            port: 8080
+        livenessProbe:
+          periodSeconds: 5
+          grpc:
+            port: 8080
+        env:
+        - name: PORT
+          value: "8080"
+        - name: PRODUCT_CATALOG_SERVICE_ADDR
+          value: "productcatalogservice:3550"
+        - name: AGENT_TIMEOUT_SECONDS
+          value: "3"
+        - name: FALLBACK_ENABLED
+          value: "true"
+        - name: FAULT_MODE
+          value: "none"
+        - name: SERVICE_VERSION
+          value: "v2"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 300m
+            memory: 256Mi

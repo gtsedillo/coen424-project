@@ -1,0 +1,16 @@
+# The two "subsets" Istio can route to: pods labelled version=v1 and version=v2.
+# The traffic weights themselves are set by coen424/scripts/canary.sh, which
+# writes the VirtualService (the strangler facade).
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: recommendationservice
+spec:
+  host: recommendationservice
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+  - name: v2
+    labels:
+      version: v2

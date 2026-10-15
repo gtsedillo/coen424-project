@@ -1,0 +1,10 @@
+# Adds the label version=v1 to Google's existing v1 pods, without changing v1's code
+# or image. Istio's DestinationRule uses this label to find the "v1" subset.
+#
+# Apply with:
+#   kubectl patch deployment recommendationservice --patch-file coen424/k8s/recommendation-v1-version-patch.yaml
+spec:
+  template:
+    metadata:
+      labels:
+        version: v1
