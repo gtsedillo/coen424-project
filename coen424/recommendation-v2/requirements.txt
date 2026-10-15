@@ -1,0 +1,4 @@
+# Same gRPC and protobuf versions as v1 (src/recommendationservice/requirements.txt)
+grpcio==1.76.0
+grpcio-health-checking==1.76.0
+protobuf==6.33.5
